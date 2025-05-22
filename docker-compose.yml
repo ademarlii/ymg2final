@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:14
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: taskdb
+      POSTGRES_USER: adem
+      POSTGRES_PASSWORD: adem1234
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U adem -d taskdb" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - appnet
+
+  myback:
+    build: ./backend
+    ports:
+      - "1212:1212"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  myfront:
+    build: ./frontend
+    ports:
+      - "4545:80"
+    depends_on:
+      - myback
+    networks:
+      - appnet
+
+volumes:
+  pgdata:
+
+networks:
+  appnet:
